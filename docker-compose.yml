@@ -1,0 +1,43 @@
+version: "2"
+
+services:
+        caddy:
+            build: .
+            command: /bin/true
+        
+        django-front:
+                image: caddyexamples_caddy 
+                volumes: 
+                        - ./django/Caddyfile:/app/Caddyfile
+                volumes_from:
+                        - django-server:ro
+                ports:
+                        - 2015
+                
+        django-server:
+                build: ./django/server/
+                command: /usr/local/bin/gunicorn mysite.wsgi:application -w 2 -b :8000
+
+        
+        wp-front:
+                image: caddyexamples_caddy
+                volumes:
+                        - ./wordpress/Caddyfile:/app/Caddyfile
+                volumes_from:
+                        - wp-server
+                ports:
+                        - 2015
+
+        wp-server:
+                image: wordpress:fpm
+                links:
+                        - wp-db:mysql
+
+                environment:
+                        WORDPRESS_DB_PASSWORD: example
+
+        wp-db:
+                image: mariadb
+                environment:
+                         MYSQL_ROOT_PASSWORD: example
+
